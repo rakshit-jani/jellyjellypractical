@@ -26,16 +26,21 @@ import com.jellyjellypractical.utils.AppConstants
 @Composable
 fun HomeScreen(@Suppress("unused") navController: NavController) {
     val navController = rememberNavController()
-    var selectedTab by remember { mutableStateOf(0) }
+    val tabs = listOf(
+        AppConstants.Routes.Tabs.FEED,
+        AppConstants.Routes.Tabs.CAMERA,
+        AppConstants.Routes.Tabs.GALLERY
+    )
+    var selectedTab by remember { mutableStateOf(AppConstants.Routes.Tabs.FEED) }
 
     val onTabSelected: (Int) -> Unit = { index ->
-        selectedTab = index
+        selectedTab = tabs[index]
     }
 
     JellyJellyPracticalTheme {
         Scaffold(
             bottomBar = {
-                AppBottomNavigationBar(selectedTab, onTabSelected)
+                AppBottomNavigationBar(tabs, selectedTab, onTabSelected)
             }
         ) { innerPadding ->
             Box(
@@ -44,9 +49,9 @@ fun HomeScreen(@Suppress("unused") navController: NavController) {
                     .padding(innerPadding)
             ) {
                 when (selectedTab) {
-                    0 -> FeedScreen(navController)
-                    1 -> CameraScreen(navController)
-                    2 -> GalleryScreen(navController)
+                    AppConstants.Routes.Tabs.FEED -> FeedScreen(navController)
+                    AppConstants.Routes.Tabs.CAMERA -> CameraScreen(navController)
+                    AppConstants.Routes.Tabs.GALLERY -> GalleryScreen(navController)
                 }
             }
         }
@@ -54,12 +59,7 @@ fun HomeScreen(@Suppress("unused") navController: NavController) {
 }
 
 @Composable
-fun AppBottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
-    val tabs = listOf(
-        AppConstants.Routes.Tabs.FEED,
-        AppConstants.Routes.Tabs.CAMERA,
-        AppConstants.Routes.Tabs.GALLERY
-    )
+fun AppBottomNavigationBar(tabs: List<String>, selectedTab: String, onTabSelected: (Int) -> Unit) {
 
     NavigationBar(containerColor = MaterialTheme.colorScheme.primary) {
         tabs.forEachIndexed { index, label ->
@@ -70,7 +70,7 @@ fun AppBottomNavigationBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
                     selectedTextColor = MaterialTheme.colorScheme.onTertiary,
                     unselectedTextColor = MaterialTheme.colorScheme.onTertiary.copy(alpha = 0.6f)
                 ),
-                selected = selectedTab == index,
+                selected = selectedTab == tabs[index],
                 onClick = { onTabSelected(index) },
                 label = { Text(label) },
                 icon = {}
