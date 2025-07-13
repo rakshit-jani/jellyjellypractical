@@ -17,9 +17,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.jellyjellypractical.presentation.screens.tabs.CameraScreen
-import com.jellyjellypractical.presentation.screens.tabs.FeedScreen
-import com.jellyjellypractical.presentation.screens.tabs.GalleryScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.CameraScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.feed.FeedScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.GalleryScreen
 import com.jellyjellypractical.ui.theme.JellyJellyPracticalTheme
 import com.jellyjellypractical.utils.AppConstants
 

@@ -8,9 +8,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jellyjellypractical.presentation.screens.home.HomeScreen
-import com.jellyjellypractical.presentation.screens.tabs.GalleryScreen
-import com.jellyjellypractical.presentation.screens.tabs.CameraScreen
-import com.jellyjellypractical.presentation.screens.tabs.FeedScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.GalleryScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.CameraScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.feed.FeedScreen
 
 @Composable
 fun AppNavHost() {
