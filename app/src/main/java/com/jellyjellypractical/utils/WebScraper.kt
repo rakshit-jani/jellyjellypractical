@@ -14,12 +14,20 @@ import org.jsoup.nodes.Document
 
 class WebScraper(private val context: Context) {
 
-    private val TAG = "WebScraper"
+    companion object{
+        private const val TAG = "WebScraper"
+    }
     private var webView: WebView? = null
     private val collectedItems = mutableSetOf<VideoItem>()
+    private var onScrapeComplete: ((List<VideoItem>) -> Unit)? = null
 
     @SuppressLint("SetJavaScriptEnabled")
-    fun scrapeVideos(maxClicks: Int = 2, onComplete: (List<VideoItem>) -> Unit) {
+    fun initializeScraper(onReady: () -> Unit) {
+        if (webView != null) {
+            onReady()
+            return
+        }
+
         collectedItems.clear()
 
         webView = WebView(context.applicationContext).apply {
@@ -31,7 +39,7 @@ class WebScraper(private val context: Context) {
 
             webViewClient = object : WebViewClient() {
                 override fun onPageFinished(view: WebView, url: String) {
-                    clickNextAndScrape(view, 0, maxClicks, onComplete)
+                    onReady()
                 }
             }
 
@@ -39,16 +47,12 @@ class WebScraper(private val context: Context) {
         }
     }
 
-    private fun clickNextAndScrape(
-        webView: WebView,
-        clickCount: Int,
-        maxClicks: Int,
-        onComplete: (List<VideoItem>) -> Unit
-    ) {
-        if (clickCount >= maxClicks) {
-            onComplete(collectedItems.toList())
-            return
-        }
+    /**
+     * Call this manually when user presses "Next"
+     */
+    /*fun clickNextAndScrape(onComplete: (List<VideoItem>) -> Unit) {
+        val webView = webView ?: return
+        onScrapeComplete = onComplete
 
         webView.evaluateJavascript(
             """(function() {
@@ -57,17 +61,44 @@ class WebScraper(private val context: Context) {
                 return "Not Found";
             })();"""
         ) { result ->
-
             Handler(Looper.getMainLooper()).postDelayed({
                 webView.evaluateJavascript(
                     "(function() { return document.documentElement.outerHTML; })();"
                 ) { html ->
                     parseHtml(html)
-                    clickNextAndScrape(webView, clickCount + 1, maxClicks, onComplete)
+                    onScrapeComplete?.invoke(collectedItems.toList())
                 }
             }, 3000)
         }
     }
+    */
+
+    fun clickNextAndScrape(onComplete: (List<VideoItem>) -> Unit) {
+        val webView = webView ?: return
+        onScrapeComplete = onComplete
+
+        webView.evaluateJavascript(
+            """(function() {
+                var btn = document.querySelector('.css-131p7fu');
+                if (btn) {
+                    btn.click();
+                    return "Clicked";
+                } else {
+                    return "Button not found";
+                }
+            })();"""
+        ) { result ->
+            Handler(Looper.getMainLooper()).postDelayed({
+                webView.evaluateJavascript(
+                    "(function() { return document.documentElement.outerHTML; })();"
+                ) { html ->
+                    parseHtml(html)
+                    onScrapeComplete?.invoke(collectedItems.toList())
+                }
+            }, 3000)
+        }
+    }
+
 
     private fun parseHtml(html: String?) {
         if (html == null) return
@@ -83,9 +114,9 @@ class WebScraper(private val context: Context) {
         for (videoTag in videoTags) {
             val source = videoTag.selectFirst("source")?.attr("src")
             val poster = videoTag.attr("poster")
-            if (!source.isNullOrBlank()) {
-                if (source.isNotBlank() && collectedItems.none { it.videoUrl == source }) {
-                    Log.d(TAG, "Click $source")
+            if (!source.isNullOrBlank() && collectedItems.none { it.videoUrl == source }) {
+                Log.d(TAG, "Found video: $source")
+                if (collectedItems.none { it.videoUrl == source }) {
                     collectedItems.add(
                         VideoItem(
                             videoUrl = source,
