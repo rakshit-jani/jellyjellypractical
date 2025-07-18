@@ -9,8 +9,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jellyjellypractical.presentation.screens.home.HomeScreen
 import com.jellyjellypractical.presentation.screens.home.tabs.GalleryScreen
-import com.jellyjellypractical.presentation.screens.home.tabs.CameraScreen
-import com.jellyjellypractical.presentation.screens.home.tabs.feed.FeedScreen
 
 @Composable
 fun AppNavHost() {
@@ -22,8 +20,6 @@ fun AppNavHost() {
         modifier = Modifier.padding(0.dp)
     ) {
         composable(NavigationRoutes.MainScope.route) { HomeScreen(navController) }
-        composable(NavigationRoutes.Feed.route) { FeedScreen(navController) }
-        composable(NavigationRoutes.Camera.route) { CameraScreen(navController) }
         composable(NavigationRoutes.Gallery.route) { GalleryScreen(navController) }
     }
 }

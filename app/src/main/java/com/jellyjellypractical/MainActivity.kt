@@ -8,7 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import com.jellyjellypractical.presentation.navigation.AppNavHost
-import com.jellyjellypractical.presentation.screens.home.TempFile
+import com.jellyjellypractical.presentation.temp.DualCameraVideoRecorderScreen
 import com.jellyjellypractical.ui.theme.JellyJellyPracticalTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -37,7 +37,6 @@ fun AppNavigation() {
 @SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun TestFunction() {
-    val context = androidx.compose.ui.platform.LocalContext.current
-    TempFile.scrapeJellyFeed(context)
+    DualCameraVideoRecorderScreen()
 }
 
