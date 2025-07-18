@@ -44,7 +44,6 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.jellyjellypractical.domain.intent.camera.CameraIntent
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 @Composable
@@ -55,26 +54,20 @@ fun CameraScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    var allPermissionsGranted by remember { mutableStateOf<Boolean?>(null) }
+    var allPermissionsGranted by remember { mutableStateOf(false) }
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        allPermissionsGranted = permissions.all { it.value }.apply {
-            if (this) {
-                viewModel.handleIntent(CameraIntent.InitCamera(context))
-            } else {
-                Toast.makeText(
-                    context,
-                    "Permissions denied. Cannot start camera.",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+        allPermissionsGranted = permissions.all { it.value }
+        if (!allPermissionsGranted) {
+            Toast.makeText(context, "Camera and audio permissions are required.", Toast.LENGTH_SHORT).show()
+        } else {
+            viewModel.handleIntent(CameraIntent.InitCamera(context))
         }
     }
 
     LaunchedEffect(Unit) {
-        val permissionsToRequest =
-            arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+        val permissionsToRequest = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
         val arePermissionsGranted = permissionsToRequest.all {
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
         }
@@ -99,111 +92,132 @@ fun CameraScreen(
         }
     }
 
+    /*LaunchedEffect(Unit) {
+        val permissionsToRequest = arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+        val arePermissionsGranted = permissionsToRequest.all {
+            ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
+        }
+        if (arePermissionsGranted) {
+            allPermissionsGranted = true
+            viewModel.handleIntent(CameraIntent.InitCamera(context))
+        } else {
+            permissionLauncher.launch(permissionsToRequest)
+        }
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP && uiState.isRecording) {
+                viewModel.handleIntent(CameraIntent.StopRecording)
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }*/
+
     Column(modifier = Modifier.fillMaxSize()) {
-        allPermissionsGranted?.let { isGranted ->
-            if (isGranted) {
-                // Camera Previews
-                AndroidView(
-                    factory = { viewModel.getBackTextureView() ?: TextureView(context) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
-                AndroidView(
-                    factory = { viewModel.getFrontTextureView() ?: TextureView(context) },
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                )
+        if (allPermissionsGranted) {
+            // Camera Previews
+            AndroidView(
+                factory = { viewModel.getBackTextureView() ?: TextureView(context) },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            )
+            AndroidView(
+                factory = { viewModel.getFrontTextureView() ?: TextureView(context) },
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            )
 
-                    val minutes = TimeUnit.MILLISECONDS.toMinutes(uiState.recordingTime)
-                    val seconds = TimeUnit.MILLISECONDS.toSeconds(uiState.recordingTime) % 60
-                    val format = "⏱ %02d:%02d"
-                    Text(
-                        text = String.format(Locale.US, format, minutes, seconds),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 12.dp),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color.White
-                    )
-
-                // Icon Buttons
-                Row(
+            // Timer
+            if (uiState.isRecording) {
+                val minutes = TimeUnit.MILLISECONDS.toMinutes(uiState.recordingTime)
+                val seconds = TimeUnit.MILLISECONDS.toSeconds(uiState.recordingTime) % 60
+                Text(
+                    text = String.format("⏱ %02d:%02d", minutes, seconds),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (!uiState.isRecording) {
+                        .padding(top = 12.dp),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White
+                )
+            }
+
+            // Icon Buttons
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 12.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (!uiState.isRecording) {
+                    IconWithLabel(
+                        icon = Icons.Default.PlayArrow,
+                        label = "Start",
+                        tint = Color.Green
+                    ) {
+                        viewModel.handleIntent(CameraIntent.StartRecording)
+                    }
+                } else {
+                    if (uiState.isPaused) {
                         IconWithLabel(
                             icon = Icons.Default.PlayArrow,
-                            label = "Start",
-                            tint = Color.Green
+                            label = "Resume",
+                            tint = Color.Blue
                         ) {
-                            viewModel.handleIntent(CameraIntent.StartRecording)
+                            viewModel.handleIntent(CameraIntent.ResumeRecording)
                         }
                     } else {
-                        if (uiState.isPaused) {
-                            IconWithLabel(
-                                icon = Icons.Default.PlayArrow,
-                                label = "Resume",
-                                tint = Color.Blue
-                            ) {
-                                viewModel.handleIntent(CameraIntent.ResumeRecording)
-                            }
-                        } else {
-                            IconWithLabel(
-                                icon = Icons.Default.Pause,
-                                label = "Pause",
-                                tint = Color.Yellow
-                            ) {
-                                viewModel.handleIntent(CameraIntent.PauseRecording)
-                            }
-                        }
-
                         IconWithLabel(
-                            icon = Icons.Default.Stop,
-                            label = "Stop",
-                            tint = Color.Red
+                            icon = Icons.Default.Pause,
+                            label = "Pause",
+                            tint = Color.Yellow
                         ) {
-                            viewModel.handleIntent(CameraIntent.StopRecording)
+                            viewModel.handleIntent(CameraIntent.PauseRecording)
                         }
                     }
-                }
-            } else {
-                // Permissions Not Granted UI
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Camera and audio permissions are required for video recording.",
-                        modifier = Modifier.padding(16.dp)
-                    )
-                    Button(
-                        onClick = {
-                            permissionLauncher.launch(
-                                arrayOf(
-                                    Manifest.permission.CAMERA,
-                                    Manifest.permission.RECORD_AUDIO
-                                )
-                            )
-                        }
+
+                    IconWithLabel(
+                        icon = Icons.Default.Stop,
+                        label = "Stop",
+                        tint = Color.Red
                     ) {
-                        Text("Grant Permissions")
+                        viewModel.handleIntent(CameraIntent.StopRecording)
                     }
                 }
             }
-
+        } else {
+            // Permissions Not Granted UI
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "Camera and audio permissions are required for video recording.",
+                    modifier = Modifier.padding(16.dp)
+                )
+                Button(
+                    onClick = {
+                        permissionLauncher.launch(
+                            arrayOf(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+                        )
+                    }
+                ) {
+                    Text("Grant Permissions")
+                }
+            }
         }
 
         // Trigger when URIs become available
         LaunchedEffect(uiState.frontVideoUri, uiState.backVideoUri) {
             if (uiState.frontVideoUri != null || uiState.backVideoUri != null) {
-                viewModel.resetUris()
                 Log.d("CameraScreen", "LaunchedEffect triggered! URIs are not null.")
                 Toast.makeText(context, "Recording finished", Toast.LENGTH_SHORT).show()
                 onRecordingFinished()

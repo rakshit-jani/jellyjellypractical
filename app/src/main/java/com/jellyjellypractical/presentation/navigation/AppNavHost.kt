@@ -8,7 +8,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jellyjellypractical.presentation.screens.home.HomeScreen
-import com.jellyjellypractical.presentation.screens.home.tabs.gallery.GalleryScreen
 
 @Composable
 fun AppNavHost() {
@@ -20,7 +19,6 @@ fun AppNavHost() {
         modifier = Modifier.padding(0.dp)
     ) {
         composable(NavigationRoutes.MainScope.route) { HomeScreen(navController) }
-        composable(NavigationRoutes.Gallery.route) { GalleryScreen(navController) }
     }
 }
 

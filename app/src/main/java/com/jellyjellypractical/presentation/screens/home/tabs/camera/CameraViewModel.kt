@@ -99,13 +99,6 @@ class CameraViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun resetUris() {
-        _uiState.value = _uiState.value.copy(
-            frontVideoUri = null,
-            backVideoUri = null
-        )
-    }
-
     private fun stopTimer() {
         timerJob?.cancel()
         timerJob = null
