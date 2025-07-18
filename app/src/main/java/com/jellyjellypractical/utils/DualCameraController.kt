@@ -320,6 +320,7 @@ class DualCameraController(
 
         val videoSize = getVideoSize(cameraId)
         val file = getOutputFile(lensFacing)
+        val orientationHint = if (lensFacing == CameraCharacteristics.LENS_FACING_FRONT) 270 else 90
 
         recorder.apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
@@ -331,9 +332,7 @@ class DualCameraController(
             setVideoSize(videoSize.width, videoSize.height)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setVideoEncoder(MediaRecorder.VideoEncoder.H264)
-            // Orientation hint should be calculated based on sensor orientation and display rotation
-            // For simplicity, using 90 as a common default, but a more robust solution would be needed
-            setOrientationHint(90) // This needs to be calculated accurately based on sensor and display rotation
+            setOrientationHint(orientationHint)
             prepare()
         }
         return recorder

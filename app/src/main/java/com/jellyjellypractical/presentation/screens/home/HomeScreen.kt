@@ -32,7 +32,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.jellyjellypractical.presentation.screens.home.tabs.GalleryScreen
+import com.jellyjellypractical.presentation.screens.home.tabs.gallery.GalleryScreen
 import com.jellyjellypractical.presentation.screens.home.tabs.camera.CameraScreen
 import com.jellyjellypractical.presentation.screens.home.tabs.feed.FeedScreen
 import com.jellyjellypractical.ui.theme.JellyJellyPracticalTheme

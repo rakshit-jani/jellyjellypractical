@@ -1,4 +1,4 @@
-package com.jellyjellypractical.presentation.screens.home.tabs
+package com.jellyjellypractical.presentation.screens.home.tabs.gallery
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
