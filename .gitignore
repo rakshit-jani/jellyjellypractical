@@ -37,4 +37,4 @@ google-services.json
 #src
 *.Bak.kt
 *Temp*
-CameraController.kt
+*.CameraController.*
